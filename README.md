@@ -1,149 +1,105 @@
-# automatic-door-project
+# 🐔 Automatic Poultry Gate using Raspberry Pi
 
-Project: Automatic Door Based on Time + Weather
-#### ✅ What It Does
+An automated poultry door system that opens and closes based on time, weather, and/or light. Designed for small-scale or backyard farms to improve convenience, safety, and chicken welfare.
 
-Opens the door at a scheduled time (e.g., 7:00 AM).
+---
 
-Closes it at sunset or a specific time (e.g., 7:00 PM).
+## ✅ Features
 
-Overrides schedule based on weather, like:
+- Automatically **opens in the morning** and **closes in the evening**
+- Manual **override button**
+- **LED indicators** (green for open, red for closed)
+- **OLED display** shows door status and weather info
+- **Limit switches** prevent overdriving the motor
+- Easily expandable with weather sensors or APIs
 
-If raining → keep door closed
+---
 
-If wind is too strong → delay opening
+## 📦 Things We Need
 
-If temperature is too low/high → auto-close for safety
+| Component | Purpose |
+|----------|---------|
+| 🧠 **Raspberry Pi** (Zero W, 3B+, 4, etc.) | Main controller |
+| ⚙️ **Servo Motor** | Opens/closes the door |
+| 🔋 **Power Supply for Servo Motor** | Powers motor safely |
+| 🔘 **Limit Switches (x2)** | Detect fully open/closed states |
+| 🔴🟢 **LED Lights (x2)** | Status indicators (Red = closed, Green = open) |
+| ⬛ **Push Button** | Manual override |
+| 🖥️ **OLED LCD Display** (e.g. SSD1306) | Displays door status / weather |
 
-## Required Hardware (Basic Version)
-Component	Purpose	Notes
-Raspberry Pi	Main controller	Any model with GPIO will do (Pi Zero W, 3B+, 4)
-Servo Motor / Linear Actuator	Moves the door	Servo for light door, actuator for heavier ones
-Motor Driver Board	Controls the motor safely	L298N or similar (for actuators)
-Power Supply	Drives the motor (separate from Pi)	E.g., 12V for actuator, or 5V for servo
-Limit Switches (x2)	Detect open/closed position	Prevents overdriving the motor
-DHT22 or BME280 Sensor	Reads temp/humidity	For weather logic
-Rain Sensor (YL-83 or similar)	Detects rainfall	Optional but useful
-Real-Time Clock (RTC)	Keeps time if Pi restarts	Optional
-(Optional) Wi-Fi	To fetch weather API data	If not using physical sensors
-🧠 Software Logic (Simple Version)
+---
 
-At sunrise/time (7:00 AM):
+## ⚙️ Basic Wiring Overview
 
-If no rain and temp is safe, open the door.
+| Component | GPIO Pin Example |
+|-----------|------------------|
+| Servo Signal | GPIO18 |
+| Red LED | GPIO23 |
+| Green LED | GPIO24 |
+| Button | GPIO17 |
+| Limit Switch 1 (Open) | GPIO25 |
+| Limit Switch 2 (Closed) | GPIO26 |
+| OLED Display (I2C) | SDA: GPIO2, SCL: GPIO3 |
 
-At sunset/time (7:00 PM):
+> **Note:** Use resistors with LEDs and button (e.g. 220Ω for LEDs, 10kΩ pull-down for button)
 
-Close the door.
+---
 
-At any time:
+## 🧰 Software Requirements
 
-If it starts raining, close the door.
+Install dependencies:
 
-If temp drops below X or wind > Y → auto-close.
+```bash
+sudo apt update
+sudo apt install python3-pip python3-gpiozero i2c-tools
+pip3 install schedule adafruit-circuitpython-ssd1306 requests
+Enable I2C (for OLED):
 
-### Option 1: Use Physical Sensors
+bash
+Copy code
+sudo raspi-config
+# Go to: Interface Options > I2C > Enable
+🧪 Basic Functionality
+Script runs continuously and checks current time
 
-Pros:
+At set times (e.g., 06:30 and 19:30), it triggers the servo to open/close the door
 
-Works offline
+LED and display update accordingly
 
-No reliance on internet
+If button is pressed, toggles door state manually
 
-Components:
+Limit switches stop movement when door is fully open or closed
 
-DHT22/BME280 for temp/humidity
+🚀 Getting Started
+Clone the repo:
 
-YL-83 for rain
+bash
+Copy code
+git clone https://github.com/your-username/auto-poultry-gate.git
+cd auto-poultry-gate
+Edit the schedule/times in gate_control.py
 
-Limit switches to detect door state
+Run the script:
 
-☁️ Option 2: Use Online Weather API
+bash
+Copy code
+python3 gate_control.py
+(Optional) Add to crontab or systemd for auto-start on boot
 
-Pros:
+📸 Coming Soon
+Wiring diagram
 
-More accurate (wind, UV, forecast)
+3D printable case / servo mount
 
-Easy to expand logic
+Weather API integration (OpenWeatherMap)
 
-How:
+🧠 Why This Matters
+This project solves real problems in the farming world:
 
-Use Python + requests to fetch weather data from:
+Protects chickens from predators by closing at night
 
-OpenWeatherMap
+Saves time and manual effort
 
-WeatherAPI
+Works even when farmer is away or unavailable
 
-Tomorrow.io
-
-Example JSON response:
-
-{
-  "temp": 17,
-  "humidity": 80,
-  "rain": true,
-  "wind_speed": 24
-}
-
-## Motor Control Options
-Type	Best For	Control Method
-Servo Motor	Small/light doors	PWM via GPIO or board
-Stepper Motor	Precise control (slower)	Stepper driver board
-Linear Actuator	Heavy-duty outdoor doors	L298N + relays
-
-You MUST use a separate power supply for motors — the Pi can't power them directly.
-
-### Safety Features to Consider
-
-Limit Switches: Stops the motor when fully opened/closed.
-
-Manual Override Switch/Button
-
-LED Indicators: Show current door state.
-
-Error Log: If weather or sensor data fails.
-
-## Example Build Scenario
-
-You’re building a chicken coop door:
-
-Opens at 6:30 AM
-
-Closes at 7:30 PM
-
-If raining or under 5°C, door stays closed
-
-Uses:
-
-Servo motor to lift sliding door
-
-Rain sensor for local detection
-
-DHT22 for temperature
-
-Two limit switches to stop motor
-
-## Software Tools & Libraries
-Tool / Library	Use Case
-Python	Main logic script
-gpiozero	Control GPIOs easily
-schedule	For time-based events (Python lib)
-requests	For weather API calls
-RPi.GPIO	For motor control
-time & datetime	For timing logic
-🧠 Bonus Features (If You Want to Expand Later)
-
-Add a camera to capture motion or log door events
-
-Connect to Home Assistant for remote monitoring
-
-Display door state + weather on a small OLED screen
-
-Send notifications via Telegram, email, or SMS
-
-### ✅ Summary — The Basic Version
-Feature	Solution
-Scheduled opening/closing	Use schedule or cron in Python
-Weather-based override	Rain + temp sensors or weather API
-Motor control	Servo or linear actuator + GPIO
-Safety	Limit switches to prevent overrun
+Expandable with weather data, camera, remote notifications, etc.
