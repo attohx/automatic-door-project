@@ -45,55 +45,6 @@ An automated poultry door system that opens and closes based on time, weather, a
 
 ---
 
-## 🧰 Software Requirements
-
-Install dependencies:
-
-```bash
-sudo apt update
-sudo apt install python3-pip python3-gpiozero i2c-tools
-pip3 install schedule adafruit-circuitpython-ssd1306 requests
-Enable I2C (for OLED):
-
-bash
-Copy code
-sudo raspi-config
-# Go to: Interface Options > I2C > Enable
-🧪 Basic Functionality
-Script runs continuously and checks current time
-
-At set times (e.g., 06:30 and 19:30), it triggers the servo to open/close the door
-
-LED and display update accordingly
-
-If button is pressed, toggles door state manually
-
-Limit switches stop movement when door is fully open or closed
-
-
-## 🚀 Getting Started
-Clone the repo:
-
-bash
-Copy code
-git clone https://github.com/your-username/auto-poultry-gate.git
-cd auto-poultry-gate
-Edit the schedule/times in gate_control.py
-
-Run the script:
-
-bash
-Copy code
-python3 gate_control.py
-(Optional) Add to crontab or systemd for auto-start on boot
-
-## 📸 Coming Soon
-Wiring diagram
-
-3D printable case / servo mount
-
-Weather API integration (OpenWeatherMap)
-
 ## 🧠 Why This Matters
 This project solves real problems in the farming world:
 
