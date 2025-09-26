@@ -70,7 +70,8 @@ If button is pressed, toggles door state manually
 
 Limit switches stop movement when door is fully open or closed
 
-🚀 Getting Started
+
+## 🚀 Getting Started
 Clone the repo:
 
 bash
@@ -86,14 +87,14 @@ Copy code
 python3 gate_control.py
 (Optional) Add to crontab or systemd for auto-start on boot
 
-📸 Coming Soon
+## 📸 Coming Soon
 Wiring diagram
 
 3D printable case / servo mount
 
 Weather API integration (OpenWeatherMap)
 
-🧠 Why This Matters
+## 🧠 Why This Matters
 This project solves real problems in the farming world:
 
 Protects chickens from predators by closing at night
