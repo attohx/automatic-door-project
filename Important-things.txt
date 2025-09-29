@@ -1,2 +1,6 @@
 ## Important things
 - https://newbiely.com/tutorials/raspberry-pi/raspberry-pi-servo-motor
+
+https://newbiely.com/tutorials/raspberry-pi/raspberry-pi-servo-motor
+https://gpiozero.readthedocs.io/en/stable/recipes.html
+https://forums.raspberrypi.com/viewtopic.php?t=331790
