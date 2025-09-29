@@ -1,42 +1,31 @@
 # Import libraries
 import RPi.GPIO as GPIO
 import time
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(11,GPIO.OUT)
-pwm = GPIO.PWM(11,50) # Note 11 is pin, 50 = 50Hz pulse
 
-#start PWM running, but with value of 0 (pulse off)
-pwm.start(0)
-print ("Waiting for 2 seconds")
-time.sleep(2)
+class Door():
+    def __init__(self, servo_pin):
+        self.servo_pin = servo_pin
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setup(self.servo_pin, GPIO.OUT)
+        self.pwm = GPIO.PWM(self.servo_pin, 50)  # 50Hz pulse
+        time.sleep(2)  # Allow time for the servo to initialize
 
-def set_servo_angle(angle):
-    duty_cycle = (angle / 18) + 2.5
-    pwm.ChangeDutyCycle(duty_cycle)
-    time.sleep(0.5)  # Give the servo time to reach the desired angle
+    def set_angle(self, angle):
+        duty_cycle = (angle / 18) + 2.5
+        self.pwm.ChangeDutyCycle(duty_cycle)
+        time.sleep(0.5)  # Give the servo time to reach the desired angle
 
-# set_servo_angle(0)
+    def open(self):
+        self.pwm.start(0)
+        self.set_angle(90)  # Open position
+        print("Door is open")
+        self.pwm.stop()
 
-# for angle in range(0, 181, 10):
-#             set_servo_angle(angle)
+    def close(self):
+        self.pwm.start(0)
+        self.set_angle(0)   # Closed position
+        print("Door is closed")   
+        self.pwm.stop()
 
-try:
-    while True:
-        # Rotate the servo from 0 to 180 degrees
-        for angle in range(0, 181, 30):
-            set_servo_angle(angle)
-
-        # Rotate the servo back from 180 to 0 degrees
-        for angle in range(180, -1, -30):
-            set_servo_angle(angle)
-
-except KeyboardInterrupt:
-    # If the user presses Ctrl+C, clean up the GPIO configuration
-    set_servo_angle(0)
-    pwm.stop()
-    GPIO.cleanup()
-    print ("\nGoodbye")
-
-# pwm.stop()
-# GPIO.cleanup()
-# print ("\nGoodbye")
+    def cleanup(self):
+        GPIO.cleanup()
