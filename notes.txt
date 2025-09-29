@@ -1,0 +1,1 @@
+use rpi.gpio for servo motor (nb:gpiozero doesn't work too well with the servo motor)
