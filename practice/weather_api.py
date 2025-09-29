@@ -1,11 +1,10 @@
-from pprint import pprint
-import requests
-r = requests.get('https://api.openweathermap.org/data/2.5/weather?q={city name}&appid={API key}')
-pprint(r.json)
-
-
+from dotenv import load_dotenv
+import os
 import requests, json
-api_key = "someapikey"
+
+load_dotenv()
+
+api_key = os.getenv("weather_api_key")
 base_url = "http://api.openweathermap.org/data/2.5/weather?"
 city_name = ("Brunei")
 complete_url = base_url + "appid=" + api_key + "&q=" + city_name
