@@ -26,6 +26,8 @@ An automated poultry door system that opens and closes based on time, weather, a
 | 🔴🟢 **LED Lights (x2)** | Status indicators (Red = closed, Green = open) |
 | ⬛ **Push Button** | Manual override |
 | 🖥️ **OLED LCD Display** (e.g. SSD1306) | Displays door status / weather |
+|Water sensor|
+|Passive infrared (PIR) motion sensor|
 
 ---
 
