@@ -29,12 +29,14 @@ SERVO = {
 
 # Email alerts (if using SMTP)
 EMAIL = {
-    "ENABLED": True,
-    "SMTP_SERVER": "smtp.gmail.com",
-    "SMTP_PORT": 465,
-    "USERNAME": "youremail@gmail.com",
-    "PASSWORD": "your_app_password",   # Use app password, not raw Gmail password
-    "TO_EMAIL": "farmer@example.com"
+    "MAIL_SERVER": "smtp.gmail.com",
+    "MAIL_PORT": 587,
+    "MAIL_USE_TLS": True,
+    "MAIL_USE_SSL": False,
+    "MAIL_USERNAME": "quayeadelaide18@gmail.com",
+    "MAIL_PASSWORD": "gksv gvgh duiv ipbq",   # Gmail App Password
+    "MAIL_DEFAULT_SENDER": "quayeadelaide18@gmail.com",
+    "TO_EMAIL": "attohnathanan@gmail.com"
 }
 
 # Weather API (optional)
@@ -51,3 +53,4 @@ OLED = {
     "WIDTH": 128,
     "HEIGHT": 64
 }
+
