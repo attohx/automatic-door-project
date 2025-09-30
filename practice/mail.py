@@ -12,9 +12,16 @@ app.config['MAIL_DEFAULT_SENDER'] = 'quayeadelaide18@gmail.com'
 
 mail = Mail(app)
 
-app.route('/')
+@app.route('/')
 def send_email():
-    msg = Message ('Hello!', recipients=['attohnathanan@gmail.com'], body = 'This a test email sent from Flask-Mail!')
+    try:
+        msg = Message (subject='Hello!',recipients=['attohnathanan@gmail.com'], body = 'This a test email sent from Flask-Mail!')
 
-    mail.send(msg)
-    return 'Email Sent succesfully!'
+        mail.send(msg)
+        return 'Email Sent succesfully!'
+
+    except Exception as e:
+        return f"Error sending email: {e}"    
+
+if __name__ == "__main__":
+  app.run(host="0.0.0.0", port=5000, debug=True) 
