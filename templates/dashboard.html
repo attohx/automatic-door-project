@@ -31,6 +31,17 @@
             {% endif %}
         </div>
     </div>
+    <!-- Gate Status Card -->
+    <div class="card shadow-sm mt-4">
+    <div class="card-body text-center">
+        <h4 class="card-title">🚪 Gate Status</h4>
+        {% if gate_status == "OPEN" %}
+        <p class="text-success"><strong>OPEN 🟢</strong></p>
+        {% else %}
+        <p class="text-danger"><strong>CLOSED 🔴</strong></p>
+        {% endif %}
+    </div>
+    </div>
 
 
   <!-- Bootstrap JS (optional) -->
