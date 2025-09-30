@@ -1,6 +1,7 @@
 from flask import Flask, render_template, redirect, url_for
 from config import EMAIL
 from mail import mail, send_email
+from weather import get_weather
 
 app = Flask(__name__)
 app.config.update(EMAIL)
@@ -9,6 +10,12 @@ mail.init_app(app)
 @app.route("/")
 def dashboard():
     return render_template("dashboard.html")
+
+@app.route("/weather")
+def weather_dashboard():
+    weather = get_weather()
+    return render_template("weather.html", weather=weather)
+
 
 @app.route("/open")
 def open_gate():
