@@ -37,9 +37,9 @@ if __name__ == "__main__":
     
     if timezone:
         local_time = get_local_time(timezone)
-        print(f"📍 Location: {full_address}")
-        print(f"🌍 Timezone: {timezone}")
-        print(f"⏰ Local Time: {local_time}")
+        print(f" Location: {full_address}")
+        print(f" Timezone: {timezone}")
+        print(f" Local Time: {local_time}")
     else:
         print("❌ Could not determine timezone from that location.")
 
