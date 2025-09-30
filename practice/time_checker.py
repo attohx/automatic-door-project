@@ -41,5 +41,5 @@ if __name__ == "__main__":
         print(f" Timezone: {timezone}")
         print(f" Local Time: {local_time}")
     else:
-        print("❌ Could not determine timezone from that location.")
+        print(" Could not determine timezone from that location.")
 
