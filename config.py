@@ -39,7 +39,7 @@ EMAIL = {
     "TO_EMAIL": "attohnathanan@gmail.com"
 }
 
-# Weather API (optional)
+# Weather API
 WEATHER = {
     "ENABLED": False,
     "API_KEY": "your_openweathermap_api_key",
