@@ -1,56 +1,55 @@
+import os
+from dotenv import load_dotenv
+
+# Load .env file
+load_dotenv()
+
 # =========================
 # Poultry Gate Configuration
 # =========================
 
-# GPIO pin mappings (BCM mode)
 PINS = {
-    "SERVO": 18,          # Servo signal pin
-    "LED_RED": 23,        # Red LED (closed)
-    "LED_GREEN": 24,      # Green LED (open)
-    "BUTTON": 17,         # Manual override button
-    "LIMIT_OPEN": 25,     # Limit switch (door fully open)
-    "LIMIT_CLOSED": 26,   # Limit switch (door fully closed)
-    "I2C_SDA": 2,         # OLED SDA
-    "I2C_SCL": 3          # OLED SCL
+    "SERVO": 18,
+    "LED_RED": 23,
+    "LED_GREEN": 24,
+    "BUTTON": 17,
+    "LIMIT_OPEN": 25,
+    "LIMIT_CLOSED": 26,
+    "I2C_SDA": 2,
+    "I2C_SCL": 3
 }
 
-# Door schedule (24-hour format)
 SCHEDULE = {
-    "OPEN_HOUR": 6,       # Open door at 06:00
-    "CLOSE_HOUR": 19      # Close door at 19:00
+    "OPEN_HOUR": 6,
+    "CLOSE_HOUR": 19
 }
 
-# Servo settings
 SERVO = {
-    "OPEN_DUTY": 7.5,     # Duty cycle for open position
-    "CLOSE_DUTY": 2.5,    # Duty cycle for closed position
-    "FREQ": 50            # Servo PWM frequency (Hz)
+    "OPEN_DUTY": 7.5,
+    "CLOSE_DUTY": 2.5,
+    "FREQ": 50
 }
 
-# Email alerts (if using SMTP)
 EMAIL = {
-    "MAIL_SERVER": "smtp.gmail.com",
-    "MAIL_PORT": 587,
-    "MAIL_USE_TLS": True,
-    "MAIL_USE_SSL": False,
-    "MAIL_USERNAME": "quayeadelaide18@gmail.com",
-    "MAIL_PASSWORD": "gksv gvgh duiv ipbq",   # Gmail App Password
-    "MAIL_DEFAULT_SENDER": "quayeadelaide18@gmail.com",
-    "TO_EMAIL": "attohnathanan@gmail.com"
+    "MAIL_SERVER": os.getenv("MAIL_SERVER"),
+    "MAIL_PORT": int(os.getenv("MAIL_PORT", 587)),
+    "MAIL_USE_TLS": os.getenv("MAIL_USE_TLS", "True") == "True",
+    "MAIL_USE_SSL": os.getenv("MAIL_USE_SSL", "False") == "True",
+    "MAIL_USERNAME": os.getenv("MAIL_USERNAME"),
+    "MAIL_PASSWORD": os.getenv("MAIL_PASSWORD"),
+    "MAIL_DEFAULT_SENDER": os.getenv("MAIL_DEFAULT_SENDER"),
+    "TO_EMAIL": os.getenv("TO_EMAIL")
 }
 
-# Weather API
 WEATHER = {
-    "ENABLED": False,
-    "API_KEY": "your_openweathermap_api_key",
-    "CITY": "Accra",
-    "UNITS": "metric"   # 'metric' for °C, 'imperial' for °F
+    "ENABLED": True,
+    "API_KEY": os.getenv("WEATHER_API_KEY"),
+    "CITY": os.getenv("WEATHER_CITY", "Accra"),
+    "UNITS": os.getenv("WEATHER_UNITS", "metric")
 }
 
-# OLED display
 OLED = {
     "ENABLED": True,
     "WIDTH": 128,
     "HEIGHT": 64
 }
-
