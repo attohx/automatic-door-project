@@ -9,12 +9,9 @@ mail.init_app(app)
 
 @app.route("/")
 def dashboard():
-    return render_template("dashboard.html")
+    weather = get_weather() #fetches weather data
+    return render_template("dashboard.html",weather = weather)
 
-@app.route("/weather")
-def weather_dashboard():
-    weather = get_weather()
-    return render_template("weather.html", weather=weather)
 
 
 @app.route("/open")

@@ -3,7 +3,6 @@ import config
 
 def get_weather():
     if not config.WEATHER["ENABLED"]:
-        print("Weather system disabled in config.")
         return None
 
     url = (
@@ -18,17 +17,13 @@ def get_weather():
         data = response.json()
 
         if response.status_code == 200:
-            weather = {
+            return {
                 "temperature": data["main"]["temp"],
                 "humidity": data["main"]["humidity"],
                 "condition": data["weather"][0]["description"],
-                "id": data["weather"][0]["id"]  
+                "city": config.WEATHER["CITY"]
             }
-            return weather
         else:
-            print(f"Weather API error: {data}")
-            return None
+            return {"error": f"API Error: {data.get('message', 'Unknown error')}"}
     except Exception as e:
-        print(f"Weather API request failed: {e}")
-        return None
-
+        return {"error": f"Request failed: {e}"}
