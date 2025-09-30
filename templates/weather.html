@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather</title>
+</head>
+<body>
+    <h1>Weather Status</h1>
+    {% if weather %}
+        <p>🌡️ Temperature: {{ weather.temperature }}°C</p>
+        <p>💧 Humidity: {{ weather.humidity }}%</p>
+        <p>☁️ Condition: {{ weather.condition }}</p>
+    {% else %}
+        <p>❌ Failed to load weather data.</p>
+    {% endif %}
+</body>
+</html>
