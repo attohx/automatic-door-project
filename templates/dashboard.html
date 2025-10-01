@@ -11,7 +11,7 @@
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <div class="container-fluid">
     <!-- Brand on the left -->
-    <span class="navbar-brand">🐔 Poultry Gate Dashboard</span>
+    <span class="navbar-brand">🐔 PG System Dashboard</span>
 
     <!-- Actions on the right -->
     <div class="d-flex">
@@ -32,10 +32,18 @@
       <div class="col-md-4">
         <div class="card shadow-sm text-center">
           <div class="card-body">
-            <h4 class="card-title mb-3">🚪 Gate Status</h4>
+            <h4 class="card-title mb-3">🚪 Your Current PG Status</h4>
             <h3 id="gate-status">
               <span class="badge bg-secondary">Loading...</span>
             </h3>
+          </div>
+        </div>
+      </div>
+      <!-- Door Controls -->
+      <div class="col-md-4">
+        <div class="card shadow-sm text-center">
+          <div class="card-body">
+            <h4 class="card-title mb-3">🚪 PG Controls</h4>
             <div class="mt-4 d-flex justify-content-center gap-2">
               <a href="/open" class="btn btn-success">Open Gate</a>
               <a href="/close" class="btn btn-danger">Close Gate</a>
@@ -44,11 +52,12 @@
         </div>
       </div>
 
+
       <!-- Weather -->
       <div class="col-md-4">
         <div class="card shadow-sm text-center">
           <div class="card-body">
-            <h4 class="card-title mb-3">🌤 Weather in {{city}}</h4>
+            <h4 class="card-title mb-3">🌤 Weather Forecast Today</h4>
             <h2 id="weather-temp">-- °C</h2>
             <p id="weather-condition" class="text-muted">Loading...</p>
           </div>
@@ -59,7 +68,7 @@
       <div class="col-md-4">
         <div class="card shadow-sm">
           <div class="card-body">
-            <h4 class="card-title text-center mb-3">📜 Recent Logs</h4>
+            <h4 class="card-title text-center mb-3">📜 Recent Activities</h4>
             <ul id="log-list" class="list-group list-group-flush" 
                 style="max-height: 250px; overflow-y: auto;">
               <li class="list-group-item text-muted">Loading...</li>
