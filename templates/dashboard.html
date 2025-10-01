@@ -31,6 +31,7 @@
             {% endif %}
         </div>
     </div>
+
     <!-- Gate Status Card -->
     <div class="card shadow-sm mt-4">
     <div class="card-body text-center">
@@ -42,6 +43,31 @@
         {% endif %}
     </div>
     </div>
+    
+    <!-- Recent Logs -->
+    <div class="card shadow-sm mt-4">
+      <div class="card-body">
+        <h4 class="card-title">📜 Recent Activity</h4>
+        {% if logs %}
+          <ul class="list-group list-group-flush text-start">
+            {% for timestamp, action, triggered_by in logs %}
+              <li class="list-group-item">
+                {{ timestamp }} - 
+                {% if action == "OPENED" %}
+                  <span class="badge bg-success">{{ action }}</span>
+                {% else %}
+                  <span class="badge bg-danger">{{ action }}</span>
+                {% endif %}
+                by {{ triggered_by }}
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted">No activity recorded yet.</p>
+        {% endif %}
+      </div>
+    </div>
+
 
 
   <!-- Bootstrap JS (optional) -->
