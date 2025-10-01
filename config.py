@@ -54,3 +54,8 @@ OLED = {
     "WIDTH": 128,
     "HEIGHT": 64
 }
+
+# =========================
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "password123"   # later we can hash this for extra security
+SECRET_KEY = "super_secret_key"  # for Flask sessions
