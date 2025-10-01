@@ -80,6 +80,27 @@
     </div>
   </div>
 
+  <!-- Schedule -->
+  <div class="col-md-4">
+    <div class="card shadow-sm text-center">
+      <div class="card-body">
+        <h4 class="card-title">⏰ Gate Schedule</h4>
+        <form method="POST" action="/update_schedule">
+          <div class="mb-3">
+            <label for="open_time" class="form-label">Open Time</label>
+            <input type="time" id="open_time" name="open_time" class="form-control" value="{{ schedule.open_time }}" required>
+          </div>
+          <div class="mb-3">
+            <label for="close_time" class="form-label">Close Time</label>
+            <input type="time" id="close_time" name="close_time" class="form-control" value="{{ schedule.close_time }}" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Update Schedule</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
   <!-- JavaScript -->
   <script>
     async function refreshDashboard() {
