@@ -30,6 +30,8 @@ SERVO = {
     "FREQ": 50
 }
 
+TO_EMAIL = "attohnathanan@gmail.com"
+
 EMAIL = {
     "MAIL_SERVER": os.getenv("MAIL_SERVER"),
     "MAIL_PORT": int(os.getenv("MAIL_PORT", 587)),
@@ -38,7 +40,6 @@ EMAIL = {
     "MAIL_USERNAME": os.getenv("MAIL_USERNAME"),
     "MAIL_PASSWORD": os.getenv("MAIL_PASSWORD"),
     "MAIL_DEFAULT_SENDER": os.getenv("MAIL_DEFAULT_SENDER"),
-    "TO_EMAIL": os.getenv("TO_EMAIL")
 }
 
 WEATHER = {
@@ -53,3 +54,8 @@ OLED = {
     "WIDTH": 128,
     "HEIGHT": 64
 }
+
+# =========================
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "password123"   # later we can hash this for extra security
+SECRET_KEY = "super_secret_key"  # for Flask sessions
