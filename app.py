@@ -2,6 +2,7 @@ from flask import Flask, render_template, redirect, url_for
 from config import EMAIL, TO_EMAIL
 from mail import mail, send_email
 from weather import get_weather
+from flask import jsonify
 import state
 import logs_db
 import db_setup
@@ -29,6 +30,7 @@ def dashboard():
 
 
 
+
 @app.route("/open")
 def open_gate():
     if state.get_state() =="OPEN":
@@ -47,9 +49,18 @@ def close_gate():
     
     # GPIO code for closing gate would go here
     state.set_state("CLOSED")
-    logs_db.log_action("Closed", 'user') #log to db
+    logs_db.log_action("CLOSED", 'user') #log to db
     send_email("Poultry Gate Closed 🔴", "The poultry gate has been closed.", [TO_EMAIL])
     return redirect(url_for("dashboard"))
+
+
+@app.route("/status")
+def status():
+    return jsonify({
+        "gate_status": state.get_state(),
+        "weather": get_weather(),
+        "logs": logs_db.read_logs(10)
+    })
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
