@@ -15,7 +15,8 @@ class Door():
     def set_angle(self, angle):
         duty_cycle = (angle / 18) + 2.5
         self.pwm.ChangeDutyCycle(duty_cycle)
-        sleep(0.5)  # Give the servo time to reach the desired angle
+        sleep(1)  # Give the servo time to reach the desired angle
+        self.pwm.ChangeDutyCycle(0)  # stop sending signal to reduce jitter
 
     def open(self):
         self.set_angle(90)  # Open position

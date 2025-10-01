@@ -1,10 +1,11 @@
 from flask import Flask, render_template, redirect, url_for, request, session, flash, jsonify
-from config import EMAIL, TO_EMAIL, ADMIN_USERNAME, ADMIN_PASSWORD, SECRET_KEY
+from config import EMAIL, TO_EMAIL, ADMIN_USERNAME, ADMIN_PASSWORD, SECRET_KEY, PINS
 from mail import mail, send_email
 from weather import get_weather
 import state
 import logs_db
 import db_setup
+import door
 
 app = Flask(__name__)
 app.config.update(EMAIL)
@@ -12,6 +13,10 @@ app.secret_key = SECRET_KEY
 mail.init_app(app)
 
 dbstart = db_setup.kreatedb()
+
+#-----------------------DOOR CONFIG---------
+my_door = door.Door(PINS["SERVO"])
+#-------------------------------------------
 
 # -------------------- LOGIN SYSTEM --------------------
 
@@ -63,9 +68,11 @@ def open_gate():
         return redirect(url_for("login"))
 
     if state.get_state() == "OPEN":
-        return "Gate is already Open!"
+        flash("Gate is already Open!", "info")
+        return redirect(url_for("dashboard"))
 
     state.set_state("OPEN")
+    my_door.open()
     logs_db.log_action("OPENED", session["username"])
     send_email("Poultry Gate Opened 🟢", "The poultry gate has been opened.", [TO_EMAIL])
     return redirect(url_for("dashboard"))
@@ -76,13 +83,14 @@ def close_gate():
         return redirect(url_for("login"))
 
     if state.get_state() == "CLOSED":
-        return "Gate is already Closed!"
+        flash("Gate is already Closed!", "info")
+        return redirect(url_for("dashboard"))
 
     state.set_state("CLOSED")
+    my_door.close()
     logs_db.log_action("CLOSED", session["username"])
     send_email("Poultry Gate Closed 🔴", "The poultry gate has been closed.", [TO_EMAIL])
     return redirect(url_for("dashboard"))
-
 # -------------------- STATUS API --------------------
 
 @app.route("/status")
@@ -98,3 +106,7 @@ def status():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
+
+#-----------------------DOOR CLEANUP---------
+my_door.cleanup()
+#-------------------------------------------

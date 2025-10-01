@@ -4,10 +4,10 @@ import requests, json
 
 load_dotenv()
 
-api_key = os.getenv("weather_api_key")
+api_key = os.getenv("WEATHER_API_KEY")
 base_url = "http://api.openweathermap.org/data/2.5/weather?"
-city_name = ("Brunei")
-complete_url = base_url + "appid=" + api_key + "&q=" + city_name
+city_name = "Accra, Ghana"
+complete_url = base_url + "q=" + city_name + "&appid=" + api_key
 response = requests.get(complete_url)
 x = response.json()
 if x["cod"] != "404":
