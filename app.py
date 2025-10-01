@@ -1,18 +1,31 @@
 from flask import Flask, render_template, redirect, url_for
-from config import EMAIL
+from config import EMAIL, TO_EMAIL
 from mail import mail, send_email
 from weather import get_weather
 import state
+import logs_db
+import db_setup
 
 app = Flask(__name__)
 app.config.update(EMAIL)
 mail.init_app(app)
 
+dbstart = db_setup.kreatedb()
+
+
 @app.route("/")
 def dashboard():
-    gate_status = state.get_state()
-    weather = get_weather() #fetches weather data
-    return render_template("dashboard.html",gate_status =gate_status, weather = weather)
+    try:
+        dbstart
+    except:
+        print ("Error. Database could not be created")
+
+    finally:
+            
+        gate_status = state.get_state()
+        weather = get_weather() #fetches weather data
+        recent_logs = logs_db.read_logs(10)
+        return render_template("dashboard.html",gate_status =gate_status, weather = weather, logs = recent_logs)
 
 
 
@@ -23,7 +36,8 @@ def open_gate():
     
     # GPIO code for opening gate would go here
     state.set_state("OPEN")
-    send_email("Poultry Gate Opened 🟢", "The poultry gate has been opened.", ["attohnathanan@gmail.com"])
+    logs_db.log_action("OPENED","user") #add to log db
+    send_email("Poultry Gate Opened 🟢", "The poultry gate has been opened.", [TO_EMAIL])
     return redirect(url_for("dashboard"))
 
 @app.route("/close")
@@ -33,7 +47,8 @@ def close_gate():
     
     # GPIO code for closing gate would go here
     state.set_state("CLOSED")
-    send_email("Poultry Gate Closed 🔴", "The poultry gate has been closed.", ["attohnathanan@gmail.com"])
+    logs_db.log_action("Closed", 'user') #log to db
+    send_email("Poultry Gate Closed 🔴", "The poultry gate has been closed.", [TO_EMAIL])
     return redirect(url_for("dashboard"))
 
 if __name__ == "__main__":
