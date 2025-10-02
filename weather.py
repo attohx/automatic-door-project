@@ -1,29 +1,39 @@
 import requests
-import config
+import os
+from dotenv import load_dotenv
 
-def get_weather():
-    if not config.WEATHER["ENABLED"]:
-        return None
+# Load environment variables
+load_dotenv()
 
-    url = (
-        f"http://api.openweathermap.org/data/2.5/weather?"
-        f"q={config.WEATHER['CITY']}"
-        f"&appid={config.WEATHER['API_KEY']}"
-        f"&units={config.WEATHER['UNITS']}"
-    )
+API_KEY = os.getenv("WEATHER_API_KEY")
 
+def get_weather(city="Accra"):
+    """
+    Fetch weather data for the given city.
+    Default city is Accra if none is provided.
+    """
     try:
-        response = requests.get(url, timeout=5)
+        if not API_KEY:
+            return {"error": "API key not found. Please set OPENWEATHER_API_KEY in .env"}
+
+        url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
+        response = requests.get(url)
+
+        if response.status_code != 200:
+            return {"error": f"Failed to fetch weather for {city}"}
+
         data = response.json()
 
-        if response.status_code == 200:
-            return {
-                "temperature": data["main"]["temp"],
-                "humidity": data["main"]["humidity"],
-                "condition": data["weather"][0]["description"],
-                "city": config.WEATHER["CITY"]
-            }
-        else:
-            return {"error": f"API Error: {data.get('message', 'Unknown error')}"}
+        # Extract relevant fields
+        weather_info = {
+            "city": data.get("name", city),
+            "temperature": data["main"]["temp"],
+            "description": data["weather"][0]["description"].capitalize(),
+            "humidity": data["main"]["humidity"],
+            "wind_speed": data["wind"]["speed"]
+        }
+
+        return weather_info
+
     except Exception as e:
-        return {"error": f"Request failed: {e}"}
+        return {"error": str(e)}

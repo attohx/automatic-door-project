@@ -1,4 +1,3 @@
-# app.py
 from flask import Flask, render_template, redirect, url_for, request, session, flash, jsonify
 from config import EMAIL, TO_EMAIL, ADMIN_USERNAME, ADMIN_PASSWORD, SECRET_KEY
 from mail import mail, send_email
@@ -6,21 +5,14 @@ from weather import get_weather
 import state
 import logs_db
 import db_setup
-import schedule_db
-from scheduler import init_scheduler, schedule_jobs
-import atexit
+import schedule_db  # upgraded schedule manager
 
 app = Flask(__name__)
 app.config.update(EMAIL)
 app.secret_key = SECRET_KEY
 mail.init_app(app)
 
-# Init DBs
-db_setup.kreatedb()
-schedule_db.init_schedule_db()
-
-# Init scheduler
-scheduler = init_scheduler(app)
+dbstart = db_setup.kreatedb()
 
 # -------------------- LOGIN SYSTEM --------------------
 
@@ -40,11 +32,13 @@ def login():
 
     return render_template("login.html")
 
+
 @app.route("/logout")
 def logout():
     session.pop("username", None)
     flash("You have been logged out", "info")
     return redirect(url_for("login"))
+
 
 # -------------------- MAIN DASHBOARD --------------------
 
@@ -54,36 +48,49 @@ def dashboard():
         flash("Please log in first", "warning")
         return redirect(url_for("login"))
 
-    gate_status = state.get_state()
-    weather = get_weather()
-    recent_logs = logs_db.read_logs(10)
-    sched = schedule_db.get_schedule() or {"open_time": "--:--", "close_time": "--:--"}
+    try:
+        dbstart
+    except:
+        print("Error. Database could not be created")
+    finally:
+        gate_status = state.get_state()
 
-    return render_template("dashboard.html",
-                           gate_status=gate_status,
-                           weather=weather,
-                           logs=recent_logs,
-                           schedule=sched)
+        # Use session city if available, else default from config
+        city = session.get("weather_city", None)
+        weather = get_weather(city)
 
-# -------------------- UPDATE SCHEDULE --------------------
+        recent_logs = logs_db.read_logs(10)
 
-@app.route("/update_schedule", methods=["POST"])
-def update_schedule_route():
+        # ✅ Load full weekly schedule
+        schedule = schedule_db.get_schedule()
+
+        return render_template(
+            "dashboard.html",
+            gate_status=gate_status,
+            weather=weather,
+            logs=recent_logs,
+            schedule=schedule
+        )
+
+
+# -------------------- WEATHER SETTINGS --------------------
+
+@app.route("/set_city", methods=["POST"])
+def set_city():
     if "username" not in session:
         flash("Please log in first", "warning")
         return redirect(url_for("login"))
 
-    open_time = request.form.get("open_time")
-    close_time = request.form.get("close_time")
-
-    if not open_time or not close_time:
-        flash("Invalid schedule format", "danger")
+    city = request.form.get("city")
+    if not city:
+        flash("City cannot be empty", "danger")
         return redirect(url_for("dashboard"))
 
-    schedule_db.update_schedule(open_time, close_time)
-    schedule_jobs(app)  # refresh scheduler jobs
-    flash(f"Schedule updated: {open_time} → {close_time}", "success")
+    # Save selected city in session
+    session["weather_city"] = city
+    flash(f"Weather location updated to {city}", "success")
     return redirect(url_for("dashboard"))
+
 
 # -------------------- GATE CONTROLS --------------------
 
@@ -93,13 +100,13 @@ def open_gate():
         return redirect(url_for("login"))
 
     if state.get_state() == "OPEN":
-        flash("Gate is already open", "info")
-        return redirect(url_for("dashboard"))
+        return "Gate is already Open!"
 
     state.set_state("OPEN")
-    logs_db.log_action("OPENED", session.get("username", "user"))
+    logs_db.log_action("OPENED", session["username"])
     send_email("Poultry Gate Opened 🟢", "The poultry gate has been opened.", [TO_EMAIL])
     return redirect(url_for("dashboard"))
+
 
 @app.route("/close")
 def close_gate():
@@ -107,13 +114,60 @@ def close_gate():
         return redirect(url_for("login"))
 
     if state.get_state() == "CLOSED":
-        flash("Gate is already closed", "info")
-        return redirect(url_for("dashboard"))
+        return "Gate is already Closed!"
 
     state.set_state("CLOSED")
-    logs_db.log_action("CLOSED", session.get("username", "user"))
+    logs_db.log_action("CLOSED", session["username"])
     send_email("Poultry Gate Closed 🔴", "The poultry gate has been closed.", [TO_EMAIL])
     return redirect(url_for("dashboard"))
+
+
+# -------------------- EDIT SCHEDULE --------------------
+
+# @app.route("/edit_schedule/<day>", methods=["GET", "POST"])
+# def edit_schedule(day):
+#     if "username" not in session:
+#         flash("Please log in first", "warning")
+#         return redirect(url_for("login"))
+
+#     if request.method == "POST":
+#         open_time = request.form.get("open_time")
+#         close_time = request.form.get("close_time")
+
+#         if open_time and close_time:
+#             schedule_db.update_schedule(day, open_time, close_time)
+#             flash(f"Schedule updated for {day}!", "success")
+#             return redirect(url_for("dashboard"))
+#         else:
+#             flash("Please provide both open and close times", "danger")
+
+#     schedule = schedule_db.get_day_schedule(day)
+#     return render_template("edit_schedule.html", schedule=schedule, day=day)
+
+# -------------------- EDIT SCHEDULE --------------------
+
+@app.route("/edit_schedule", methods=["GET", "POST"])
+def edit_schedule():
+    if "username" not in session:
+        flash("Please log in first", "warning")
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        open_time = request.form.get("open_time")
+        close_time = request.form.get("close_time")
+
+        if not open_time or not close_time:
+            flash("Both open and close times are required.", "danger")
+            return redirect(url_for("edit_schedule"))
+
+        schedule_db.update_schedule(open_time, close_time)
+        flash("Schedule updated successfully!", "success")
+        return redirect(url_for("dashboard"))
+
+    # Load the current schedule
+    schedule = schedule_db.get_schedule()
+    return render_template("edit_schedule.html", schedule=schedule)
+
 
 # -------------------- STATUS API --------------------
 
@@ -122,17 +176,18 @@ def status():
     if "username" not in session:
         return jsonify({"error": "Unauthorized"}), 403
 
+    city = session.get("weather_city", None)
+
     return jsonify({
         "gate_status": state.get_state(),
-        "weather": get_weather(),
+        "weather": get_weather(city),
         "logs": logs_db.read_logs(10),
         "schedule": schedule_db.get_schedule()
     })
 
-# -------------------- CLEANUP --------------------
 
-# shutdown scheduler on exit
-atexit.register(lambda: scheduler.shutdown(wait=False))
+# -------------------- RUN APP --------------------
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
+# -------------------- END OF FILE --------------------

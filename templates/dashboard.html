@@ -4,28 +4,40 @@
   <meta charset="UTF-8">
   <title>Poultry Gate Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
   <style>
     body {
-      background: #f8f9fa;
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      min-height: 100vh;
     }
     .card {
-      border-radius: 1rem;
+      border-radius: 16px;
+      transition: all 0.3s ease;
+      border: none;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
     }
     .card-header {
-      font-weight: 600;
-      background: linear-gradient(135deg, #343a40, #212529);
+      background: #343a40;
       color: #fff;
-      border-top-left-radius: 1rem;
-      border-top-right-radius: 1rem;
+      font-weight: 600;
+      border-top-left-radius: 16px !important;
+      border-top-right-radius: 16px !important;
     }
-    .status-badge {
-      font-size: 1.2rem;
-      padding: .5rem 1rem;
+    .navbar-brand {
+      font-weight: bold;
+      font-size: 1.25rem;
+      letter-spacing: 0.5px;
     }
-    .error-text {
-      font-size: 0.9rem;
-      color: #dc3545;
+    .badge {
+      font-size: 1.15rem;
+      padding: 0.65em 1.2em;
+      border-radius: 30px;
+    }
+    #log-list {
+      max-height: 250px;
+      overflow-y: auto;
     }
   </style>
 </head>
@@ -34,14 +46,12 @@
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
     <div class="container-fluid">
-      <span class="navbar-brand fw-bold"><i class="bi bi-door-open-fill me-2"></i>PG System Dashboard</span>
+      <span class="navbar-brand">🐔 Poultry Gate Dashboard</span>
       <div class="d-flex">
         <button onclick="refreshDashboard()" class="btn btn-outline-light btn-sm me-2">
-          <i class="bi bi-arrow-clockwise"></i> Refresh
+          ⟳ Refresh
         </button>
-        <a href="/logout" class="btn btn-outline-light btn-sm">
-          <i class="bi bi-box-arrow-right"></i> Logout
-        </a>
+        <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
       </div>
     </div>
   </nav>
@@ -52,25 +62,24 @@
 
       <!-- Gate Status -->
       <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-          <div class="card-header text-center"><i class="bi bi-info-circle me-2"></i>Gate Status</div>
-          <div class="card-body d-flex flex-column align-items-center justify-content-center">
-            <h3 id="gate-status">
-              <span class="badge bg-secondary status-badge">Loading...</span>
+        <div class="card shadow-sm text-center h-100">
+          <div class="card-header">🚪 Current Gate Status</div>
+          <div class="card-body">
+            <h3 id="gate-status" class="mt-3">
+              <span class="badge bg-secondary">Loading...</span>
             </h3>
-            <div id="status-error" class="error-text mt-2 d-none">⚠ Couldn’t fetch status</div>
           </div>
         </div>
       </div>
 
       <!-- Door Controls -->
       <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-          <div class="card-header text-center"><i class="bi bi-sliders me-2"></i>Gate Controls</div>
-          <div class="card-body d-flex flex-column align-items-center justify-content-center">
-            <div class="d-flex gap-2">
-              <a href="/open" class="btn btn-success"><i class="bi bi-door-open"></i> Open</a>
-              <a href="/close" class="btn btn-danger"><i class="bi bi-door-closed"></i> Close</a>
+        <div class="card shadow-sm text-center h-100">
+          <div class="card-header">⚡ Gate Controls</div>
+          <div class="card-body d-flex flex-column justify-content-center">
+            <div class="d-flex justify-content-center gap-3 mt-3">
+              <a href="/open" class="btn btn-success px-4">Open</a>
+              <a href="/close" class="btn btn-danger px-4">Close</a>
             </div>
           </div>
         </div>
@@ -78,11 +87,20 @@
 
       <!-- Weather -->
       <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-          <div class="card-header text-center"><i class="bi bi-cloud-sun me-2"></i>Today’s Weather</div>
-          <div class="card-body d-flex flex-column align-items-center justify-content-center">
+        <div class="card shadow-sm text-center h-100">
+          <div class="card-header">🌤 Weather</div>
+          <div class="card-body">
             <h2 id="weather-temp">-- °C</h2>
             <p id="weather-condition" class="text-muted">Loading...</p>
+
+            <!-- Weather City Change Form -->
+            <form action="/set_city" method="POST" class="mt-3 d-flex">
+              <input type="text" name="city" class="form-control form-control-sm" placeholder="Enter city..." required>
+              <button type="submit" class="btn btn-primary btn-sm ms-2">Update</button>
+            </form>
+            <small class="text-muted d-block mt-2">Current city: 
+              <span id="weather-city">--</span>
+            </small>
           </div>
         </div>
       </div>
@@ -90,9 +108,9 @@
       <!-- Logs -->
       <div class="col-md-6">
         <div class="card shadow-sm h-100">
-          <div class="card-header text-center"><i class="bi bi-journal-text me-2"></i>Recent Activities</div>
-          <div class="card-body p-0">
-            <ul id="log-list" class="list-group list-group-flush" style="max-height: 280px; overflow-y: auto;">
+          <div class="card-header text-center">📜 Recent Activities</div>
+          <div class="card-body">
+            <ul id="log-list" class="list-group list-group-flush">
               <li class="list-group-item text-muted">Loading...</li>
             </ul>
           </div>
@@ -101,23 +119,16 @@
 
       <!-- Schedule -->
       <div class="col-md-6">
-        <div class="card shadow-sm h-100">
-          <div class="card-header text-center"><i class="bi bi-alarm me-2"></i>Gate Schedule</div>
+        <div class="card shadow-sm text-center h-100">
+          <div class="card-header">⏰ Gate Schedule</div>
           <div class="card-body">
-            <form method="POST" action="/update_schedule">
-              <div class="mb-3">
-                <label for="open_time" class="form-label"><i class="bi bi-sunrise me-2"></i>Open Time</label>
-                <input type="time" id="open_time" name="open_time" class="form-control" value="{{ schedule.open_time }}" required>
-              </div>
-              <div class="mb-3">
-                <label for="close_time" class="form-label"><i class="bi bi-sunset me-2"></i>Close Time</label>
-                <input type="time" id="close_time" name="close_time" class="form-control" value="{{ schedule.close_time }}" required>
-              </div>
-              <button type="submit" class="btn btn-primary w-100"><i class="bi bi-check-circle"></i> Update</button>
-            </form>
+            <p class="fs-5"><strong>Open Time:</strong> {{ schedule.open_time }}</p>
+            <p class="fs-5"><strong>Close Time:</strong> {{ schedule.close_time }}</p>
+            <a href="/edit_schedule" class="btn btn-outline-primary btn-sm mt-2">Edit Schedule</a>
           </div>
         </div>
       </div>
+
 
     </div>
   </div>
@@ -127,29 +138,27 @@
     async function refreshDashboard() {
       try {
         const res = await fetch("/status");
-        if (!res.ok) throw new Error("Network response not ok");
         const data = await res.json();
-
-        // Reset error message
-        document.getElementById("status-error").classList.add("d-none");
 
         // Gate Status
         const gateStatus = document.getElementById("gate-status");
         if (data.gate_status === "OPEN") {
-          gateStatus.innerHTML = '<span class="badge bg-success status-badge"><i class="bi bi-door-open"></i> OPEN</span>';
+          gateStatus.innerHTML = '<span class="badge bg-success">OPEN</span>';
         } else if (data.gate_status === "CLOSED") {
-          gateStatus.innerHTML = '<span class="badge bg-danger status-badge"><i class="bi bi-door-closed"></i> CLOSED</span>';
+          gateStatus.innerHTML = '<span class="badge bg-danger">CLOSED</span>';
         } else {
-          gateStatus.innerHTML = '<span class="badge bg-secondary status-badge"><i class="bi bi-question-circle"></i> Unknown</span>';
+          gateStatus.innerHTML = '<span class="badge bg-secondary">Unknown</span>';
         }
 
         // Weather
-        if (data.weather && data.weather.temperature !== undefined) {
-          document.getElementById("weather-temp").innerHTML = `<i class="bi bi-thermometer-half me-1"></i> ${data.weather.temperature}°C`;
-          document.getElementById("weather-condition").innerText = data.weather.condition || "Clear skies";
+        if (data.weather && !data.weather.error) {
+          document.getElementById("weather-temp").innerText = data.weather.temperature + "°C";
+          document.getElementById("weather-condition").innerText = data.weather.condition;
+          document.getElementById("weather-city").innerText = data.weather.city;
         } else {
-          document.getElementById("weather-temp").innerHTML = "<i class='bi bi-thermometer'></i> -- °C";
+          document.getElementById("weather-temp").innerText = "-- °C";
           document.getElementById("weather-condition").innerText = "Unavailable";
+          document.getElementById("weather-city").innerText = "--";
         }
 
         // Logs
@@ -159,16 +168,15 @@
           data.logs.forEach(log => {
             let li = document.createElement("li");
             li.className = "list-group-item";
-            li.innerHTML = `<i class="bi bi-clock-history me-2"></i>${log.timestamp} → ${log.action} by ${log.user}`;
+            li.innerText = `${log.timestamp} → ${log.action} by ${log.user}`;
             logList.appendChild(li);
           });
         } else {
-          logList.innerHTML = "<li class='list-group-item text-muted'><i class='bi bi-inbox me-2'></i>No logs yet</li>";
+          logList.innerHTML = "<li class='list-group-item text-muted'>No logs yet</li>";
         }
 
       } catch (err) {
         console.error("Error refreshing dashboard:", err);
-        document.getElementById("status-error").classList.remove("d-none");
       }
     }
 
