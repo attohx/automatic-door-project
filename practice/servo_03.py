@@ -36,7 +36,6 @@ try:
 
 except KeyboardInterrupt:
     # If the user presses Ctrl+C, clean up the GPIO configuration
-    set_servo_angle(0)
     pwm.stop()
     GPIO.cleanup()
     print ("\nGoodbye")

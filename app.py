@@ -7,6 +7,11 @@ import logs_db
 import db_setup
 import heat_lamp_state  # new heat lamp state manager
 import schedule_db  # upgraded schedule manager
+from gpiozero import LED, Button
+import RPi.GPIO as GPIO
+import time
+
+
 
 app = Flask(__name__)
 app.config.update(EMAIL)
@@ -15,6 +20,9 @@ mail.init_app(app)
 
 dbstart = db_setup.kreatedb()
 
+#----------------------- LAMP CONFIG -----------------------
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(24, GPIO.OUT)
 # -------------------- LOGIN SYSTEM --------------------
 
 @app.route("/login", methods=["GET", "POST"])
@@ -137,6 +145,7 @@ def lamp_on():
         return "Heat Lamp is already ON!"
 
     heat_lamp_state.set_state("ON")
+    GPIO.output(24, GPIO.HIGH) # Turn on the lamp
     logs_db.log_action("HEAT LAMP ON", session["username"])
     send_email("Heat Lamp Turned ON 🔥", "The heat lamp has been switched ON.", [TO_EMAIL])
     return redirect(url_for("dashboard"))
@@ -150,6 +159,7 @@ def lamp_off():
         return "Heat Lamp is already OFF!"
 
     heat_lamp_state.set_state("OFF")
+    GPIO.output(24, GPIO.LOW) # Turn off the lamp
     logs_db.log_action("HEAT LAMP OFF", session["username"])
     send_email("Heat Lamp Turned OFF ❄️", "The heat lamp has been switched OFF.", [TO_EMAIL])
     return redirect(url_for("dashboard"))
