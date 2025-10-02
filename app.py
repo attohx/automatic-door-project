@@ -5,6 +5,7 @@ from weather import get_weather
 import state
 import logs_db
 import db_setup
+import heat_lamp_state  # new heat lamp state manager
 import schedule_db  # upgraded schedule manager
 
 app = Flask(__name__)
@@ -121,6 +122,35 @@ def close_gate():
     send_email("Poultry Gate Closed 🔴", "The poultry gate has been closed.", [TO_EMAIL])
     return redirect(url_for("dashboard"))
 
+# -------------------- HEAT LAMP CONTROLS --------------------
+
+@app.route("/lamp/on")
+def lamp_on():
+    if "username" not in session:
+        return redirect(url_for("login"))
+
+    if heat_lamp_state.get_state() == "ON":
+        return "Heat Lamp is already ON!"
+
+    heat_lamp_state.set_state("ON")
+    logs_db.log_action("HEAT LAMP ON", session["username"])
+    send_email("Heat Lamp Turned ON 🔥", "The heat lamp has been switched ON.", [TO_EMAIL])
+    return redirect(url_for("dashboard"))
+
+@app.route("/lamp/off")
+def lamp_off():
+    if "username" not in session:
+        return redirect(url_for("login"))
+
+    if heat_lamp_state.get_state() == "OFF":
+        return "Heat Lamp is already OFF!"
+
+    heat_lamp_state.set_state("OFF")
+    logs_db.log_action("HEAT LAMP OFF", session["username"])
+    send_email("Heat Lamp Turned OFF ❄️", "The heat lamp has been switched OFF.", [TO_EMAIL])
+    return redirect(url_for("dashboard"))
+
+
 
 # -------------------- EDIT SCHEDULE --------------------
 
@@ -180,6 +210,7 @@ def status():
 
     return jsonify({
         "gate_status": state.get_state(),
+        "lamp_status": heat_lamp_state.get_state(),
         "weather": get_weather(city),
         "logs": logs_db.read_logs(10),
         "schedule": schedule_db.get_schedule()
