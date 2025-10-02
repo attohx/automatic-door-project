@@ -26,17 +26,19 @@ def set_servo_angle(angle):
 
 try:
     while True:
+        # Rotate the servo back from 180 to 0 degrees
+        for angle in range(180, -1, -90):
+            set_servo_angle(angle)
+        
+            time.sleep(2)  # Wait for 2 seconds 
         # Rotate the servo from 0 to 180 degrees
         for angle in range(0, 181, 90):
             set_servo_angle(angle)
 
-        # Rotate the servo back from 180 to 0 degrees
-        for angle in range(180, -1, -90):
-            set_servo_angle(angle)
+
 
 except KeyboardInterrupt:
     # If the user presses Ctrl+C, clean up the GPIO configuration
-    set_servo_angle(0)
     pwm.stop()
     GPIO.cleanup()
     print ("\nGoodbye")
