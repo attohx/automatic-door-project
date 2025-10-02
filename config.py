@@ -9,7 +9,7 @@ load_dotenv()
 # =========================
 
 PINS = {
-    "SERVO": 11,
+    "SERVO_PIN": 11,
     "LED_RED": 12,
     "LED_GREEN": 24,
     "BUTTON": 17,

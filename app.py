@@ -9,19 +9,26 @@ import heat_lamp_state  # new heat lamp state manager
 import schedule_db  # upgraded schedule manager
 from gpiozero import LED, Button
 import RPi.GPIO as GPIO
-import time
-
+import door
+import threading
 
 
 app = Flask(__name__)
+#----------------------- DOOR CONFIG -----------------------
+my_door = door.Door(PINS["SERVO_PIN"])
+
 app.config.update(EMAIL)
 app.secret_key = SECRET_KEY
 mail.init_app(app)
 
 dbstart = db_setup.kreatedb()
 
+#----------------------- THREADING LOCK CONFIG -----------------------
+lock = threading.Lock()
+
+
 #----------------------- LAMP CONFIG -----------------------
-GPIO.setmode(GPIO.BOARD)
+# GPIO.setmode(GPIO.BOARD)  #Mode already set by door.py
 GPIO.setup(24, GPIO.OUT)
 # -------------------- LOGIN SYSTEM --------------------
 
@@ -113,7 +120,8 @@ def open_gate():
         return redirect(url_for("dashboard"))
 
     state.set_state("OPEN")
-    my_door.open()
+    with lock:
+        my_door.open()
     logs_db.log_action("OPENED", session["username"])
     send_email("Poultry Gate Opened 🟢", "The poultry gate has been opened.", [TO_EMAIL])
     return redirect(url_for("dashboard"))
@@ -129,7 +137,8 @@ def close_gate():
         return redirect(url_for("dashboard"))
 
     state.set_state("CLOSED")
-    my_door.close()
+    with lock:
+        my_door.close()
     logs_db.log_action("CLOSED", session["username"])
     send_email("Poultry Gate Closed 🔴", "The poultry gate has been closed.", [TO_EMAIL])
     return redirect(url_for("dashboard"))

@@ -16,14 +16,17 @@ class Door():
         duty_cycle = (angle / 18) + 2.5
         self.pwm.ChangeDutyCycle(duty_cycle)
         sleep(0.5)  # Give the servo time to reach the desired angle
+        self.pwm.ChangeDutyCycle(0)  # Stop sending signal to avoid jittering
 
     def open(self):
         self.set_angle(0)  # Open position
         print("Door is open")
+        # self.cleanup()
 
     def close(self):
         self.set_angle(170)   # Closed position
         print("Door is closed")
+        # self.cleanup()
 
     def cleanup(self):
         self.pwm.stop()
