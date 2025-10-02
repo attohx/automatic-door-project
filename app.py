@@ -15,10 +15,6 @@ mail.init_app(app)
 
 dbstart = db_setup.kreatedb()
 
-#-----------------------DOOR CONFIG---------
-my_door = door.Door(PINS["SERVO"])
-#-------------------------------------------
-
 # -------------------- LOGIN SYSTEM --------------------
 
 @app.route("/login", methods=["GET", "POST"])
