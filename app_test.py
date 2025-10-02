@@ -1,11 +1,10 @@
 from flask import Flask, render_template, redirect, url_for, request, session, flash, jsonify
-from config import EMAIL, TO_EMAIL, ADMIN_USERNAME, ADMIN_PASSWORD, SECRET_KEY, PINS
+from config import EMAIL, TO_EMAIL, ADMIN_USERNAME, ADMIN_PASSWORD, SECRET_KEY
 from mail import mail, send_email
 from weather import get_weather
 import state
 import logs_db
 import db_setup
-import door
 import RPi.GPIO as GPIO
 import time
 
@@ -16,25 +15,21 @@ mail.init_app(app)
 
 dbstart = db_setup.kreatedb()
 
-#-----------------------DOOR CONFIG---------
-# Set GPIO numbering mode
-GPIO.setmode(GPIO.BOARD)
-
-# Set pin 11 as an output, and set servo1 as pin 11 as PWM
-GPIO.setup(11,GPIO.OUT)
-pwm = GPIO.PWM(11,50) # Note 11 is pin, 50 = 50Hz pulse
-
-#start PWM running, but with value of 0 (pulse off)
-pwm.start(0)
+# ----------------------- SERVO / DOOR CONFIG -----------------------
+GPIO.setmode(GPIO.BOARD)        # GPIO pin numbering
+GPIO.setup(11, GPIO.OUT)        # Pin 11 as output
+pwm = GPIO.PWM(11, 50)          # 50Hz frequency
+pwm.start(0)                    # Start with 0 duty cycle
 
 def set_servo_angle(angle):
+    """Move servo to target angle safely without jitter"""
     duty_cycle = (angle / 18) + 2.5
     pwm.ChangeDutyCycle(duty_cycle)
-    time.sleep(0.5)  # Give the servo time to reach the desired angle
-#-------------------------------------------
+    time.sleep(0.5)  # let servo move
+    pwm.ChangeDutyCycle(0)  # stop signal to prevent stutter
+# ------------------------------------------------------------------
 
 # -------------------- LOGIN SYSTEM --------------------
-
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -58,7 +53,6 @@ def logout():
     return redirect(url_for("login"))
 
 # -------------------- MAIN DASHBOARD --------------------
-
 @app.route("/")
 def dashboard():
     if "username" not in session:
@@ -73,10 +67,12 @@ def dashboard():
         gate_status = state.get_state()
         weather = get_weather()
         recent_logs = logs_db.read_logs(10)
-        return render_template("dashboard.html", gate_status=gate_status, weather=weather, logs=recent_logs)
+        return render_template("dashboard.html",
+                               gate_status=gate_status,
+                               weather=weather,
+                               logs=recent_logs)
 
 # -------------------- GATE CONTROLS --------------------
-
 @app.route("/open")
 def open_gate():
     if "username" not in session:
@@ -103,13 +99,13 @@ def close_gate():
         return redirect(url_for("dashboard"))
 
     state.set_state("CLOSED")
-    set_servo_angle(180)  # Close position
+    set_servo_angle(160)  # safer than 180 to avoid servo stress
     print("Door is closed")
     logs_db.log_action("CLOSED", session["username"])
     send_email("Poultry Gate Closed 🔴", "The poultry gate has been closed.", [TO_EMAIL])
     return redirect(url_for("dashboard"))
-# -------------------- STATUS API --------------------
 
+# -------------------- STATUS API --------------------
 @app.route("/status")
 def status():
     if "username" not in session:
@@ -121,12 +117,14 @@ def status():
         "logs": logs_db.read_logs(10)
     })
 
+# -------------------- CLEANUP --------------------
+@app.teardown_appcontext
+def cleanup(exception=None):
+    """Ensure GPIO cleanup when app stops"""
+    set_servo_angle(0)  # default to open before stopping
+    pwm.stop()
+    GPIO.cleanup()
+    print("\nGPIO Cleanup complete. Goodbye 👋")
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
-
-#-----------------------DOOR CLEANUP---------
-set_servo_angle(0)
-pwm.stop()
-GPIO.cleanup()
-print ("\nGoodbye")
-#-------------------------------------------
