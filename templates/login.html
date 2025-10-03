@@ -6,7 +6,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
-      background: linear-gradient(135deg, #4e73df, #1cc88a);
+      background: linear-gradient(135deg, #ebe9e6, #f1efef); /* warm sunrise farm vibe */
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -14,45 +14,85 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .login-card {
-      background: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(8px);
+      background: rgba(255, 255, 255, 0.95);
       border-radius: 20px;
       padding: 2rem;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      box-shadow: 0 10px 35px rgba(0,0,0,0.15);
       width: 100%;
       max-width: 400px;
       transition: transform 0.2s ease-in-out;
     }
     .login-card:hover {
-      transform: translateY(-4px);
+      transform: translateY(-5px);
     }
     .login-title {
       font-weight: 700;
       text-align: center;
       margin-bottom: 1.5rem;
-      color: #333;
+      color: #0a0705; /* warm orange */
+    }
+    .form-label {
+      font-weight: 600;
+      color: #444;
     }
     .form-control {
-      border-radius: 10px;
+      border-radius: 12px;
       padding: 0.75rem;
+      border: 1.5px solid #ddd;
+      transition: all 0.3s ease-in-out;
+    }
+    .form-control:focus {
+      border-color: #e67e22;
+      box-shadow: 0 0 0 0.2rem rgba(230,126,34,0.25);
     }
     .btn-login {
-      border-radius: 10px;
+      border-radius: 12px;
       padding: 0.75rem;
       font-weight: 600;
+      background-color: #e67e22;
+      border: none;
+      transition: all 0.3s ease;
+    }
+    .btn-login:hover {
+      background-color: #d35400;
     }
     .alert {
       border-radius: 10px;
+    }
+    .extra-links {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+    .extra-links a {
+      color: #e67e22;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .extra-links a:hover {
+      text-decoration: underline;
+    }
+    .logo {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+    .logo img {
+      width: 80px;
+      height: 80px;
     }
   </style>
 </head>
 <body>
 
   <div class="login-card">
-    <h3 class="login-title">🔐 Admin Login</h3>
+    <div class="logo">
+      <!----- <img src="https://imgur.com/a/Ifr5ym4#uta4qGR" alt="Poultry Gate Logo"> -->
+    </div>
+    <h3 class="login-title">🐓 Poultry Gate Admin</h3>
 
     <!-- Login Form -->
-    <form method="POST">
+    <form method="POST" novalidate>
       <div class="mb-3">
         <label for="username" class="form-label">Username</label>
         <input 
@@ -75,7 +115,7 @@
           required>
       </div>
 
-      <button type="submit" class="btn btn-primary w-100 btn-login">Login</button>
+      <button type="submit" class="btn btn-login w-100">Login</button>
     </form>
 
     <!-- Flash Messages -->
@@ -91,6 +131,11 @@
         </div>
       {% endif %}
     {% endwith %}
+
+    <!-- Extra Links -->
+    <div class="extra-links">
+      <a href="#">Forgot Password?</a>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

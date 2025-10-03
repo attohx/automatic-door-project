@@ -5,14 +5,16 @@ from weather import get_weather
 import state
 import logs_db
 import db_setup
-import heat_lamp_state  # new heat lamp state manager
-import schedule_db  # upgraded schedule manager
+import heat_lamp_state  # Heat lamp state manager
+import schedule_db      # Weekly schedule manager
+from datetime import datetime
 
 app = Flask(__name__)
 app.config.update(EMAIL)
 app.secret_key = SECRET_KEY
 mail.init_app(app)
 
+# Initialize DB
 dbstart = db_setup.kreatedb()
 
 # -------------------- LOGIN SYSTEM --------------------
@@ -52,26 +54,26 @@ def dashboard():
     try:
         dbstart
     except:
-        print("Error. Database could not be created")
-    finally:
-        gate_status = state.get_state()
+        print("Error: Database could not be created")
 
-        # Use session city if available, else default from config
-        city = session.get("weather_city", None)
-        weather = get_weather(city)
+    gate_status = state.get_state()
+    lamp_status = heat_lamp_state.get_state()
 
-        recent_logs = logs_db.read_logs(10)
+    # Weather location from session
+    city = session.get("weather_city", None)
+    weather = get_weather(city)
 
-        # ✅ Load full weekly schedule
-        schedule = schedule_db.get_schedule()
+    recent_logs = logs_db.read_logs(10)
+    schedule = schedule_db.get_schedule()
 
-        return render_template(
-            "dashboard.html",
-            gate_status=gate_status,
-            weather=weather,
-            logs=recent_logs,
-            schedule=schedule
-        )
+    return render_template(
+        "dashboard.html",
+        gate_status=gate_status,
+        lamp_status=lamp_status,
+        weather=weather,
+        logs=recent_logs,
+        schedule=schedule
+    )
 
 
 # -------------------- WEATHER SETTINGS --------------------
@@ -87,7 +89,6 @@ def set_city():
         flash("City cannot be empty", "danger")
         return redirect(url_for("dashboard"))
 
-    # Save selected city in session
     session["weather_city"] = city
     flash(f"Weather location updated to {city}", "success")
     return redirect(url_for("dashboard"))
@@ -101,7 +102,8 @@ def open_gate():
         return redirect(url_for("login"))
 
     if state.get_state() == "OPEN":
-        return "Gate is already Open!"
+        flash("Gate is already OPEN!", "info")
+        return redirect(url_for("dashboard"))
 
     state.set_state("OPEN")
     logs_db.log_action("OPENED", session["username"])
@@ -115,12 +117,14 @@ def close_gate():
         return redirect(url_for("login"))
 
     if state.get_state() == "CLOSED":
-        return "Gate is already Closed!"
+        flash("Gate is already CLOSED!", "info")
+        return redirect(url_for("dashboard"))
 
     state.set_state("CLOSED")
     logs_db.log_action("CLOSED", session["username"])
     send_email("Poultry Gate Closed 🔴", "The poultry gate has been closed.", [TO_EMAIL])
     return redirect(url_for("dashboard"))
+
 
 # -------------------- HEAT LAMP CONTROLS --------------------
 
@@ -130,12 +134,14 @@ def lamp_on():
         return redirect(url_for("login"))
 
     if heat_lamp_state.get_state() == "ON":
-        return "Heat Lamp is already ON!"
+        flash("Heat Lamp is already ON!", "info")
+        return redirect(url_for("dashboard"))
 
     heat_lamp_state.set_state("ON")
     logs_db.log_action("HEAT LAMP ON", session["username"])
     send_email("Heat Lamp Turned ON 🔥", "The heat lamp has been switched ON.", [TO_EMAIL])
     return redirect(url_for("dashboard"))
+
 
 @app.route("/lamp/off")
 def lamp_off():
@@ -143,36 +149,14 @@ def lamp_off():
         return redirect(url_for("login"))
 
     if heat_lamp_state.get_state() == "OFF":
-        return "Heat Lamp is already OFF!"
+        flash("Heat Lamp is already OFF!", "info")
+        return redirect(url_for("dashboard"))
 
     heat_lamp_state.set_state("OFF")
     logs_db.log_action("HEAT LAMP OFF", session["username"])
     send_email("Heat Lamp Turned OFF ❄️", "The heat lamp has been switched OFF.", [TO_EMAIL])
     return redirect(url_for("dashboard"))
 
-
-
-# -------------------- EDIT SCHEDULE --------------------
-
-# @app.route("/edit_schedule/<day>", methods=["GET", "POST"])
-# def edit_schedule(day):
-#     if "username" not in session:
-#         flash("Please log in first", "warning")
-#         return redirect(url_for("login"))
-
-#     if request.method == "POST":
-#         open_time = request.form.get("open_time")
-#         close_time = request.form.get("close_time")
-
-#         if open_time and close_time:
-#             schedule_db.update_schedule(day, open_time, close_time)
-#             flash(f"Schedule updated for {day}!", "success")
-#             return redirect(url_for("dashboard"))
-#         else:
-#             flash("Please provide both open and close times", "danger")
-
-#     schedule = schedule_db.get_day_schedule(day)
-#     return render_template("edit_schedule.html", schedule=schedule, day=day)
 
 # -------------------- EDIT SCHEDULE --------------------
 
@@ -183,20 +167,19 @@ def edit_schedule():
         return redirect(url_for("login"))
 
     if request.method == "POST":
-        open_time = request.form.get("open_time")
-        close_time = request.form.get("close_time")
-
-        if not open_time or not close_time:
-            flash("Both open and close times are required.", "danger")
-            return redirect(url_for("edit_schedule"))
-
-        schedule_db.update_schedule(open_time, close_time)
-        flash("Schedule updated successfully!", "success")
+        schedule = schedule_db.get_schedule()
+        for day in schedule.keys():
+            open_time = request.form.get(f"{day}_open")
+            close_time = request.form.get(f"{day}_close")
+            if open_time and close_time:
+                schedule_db.update_schedule(day, open_time, close_time)
+        flash("Weekly schedule updated successfully!", "success")
         return redirect(url_for("dashboard"))
 
-    # Load the current schedule
+    # Load current schedule
     schedule = schedule_db.get_schedule()
     return render_template("edit_schedule.html", schedule=schedule)
+
 
 
 # -------------------- STATUS API --------------------
@@ -207,7 +190,6 @@ def status():
         return jsonify({"error": "Unauthorized"}), 403
 
     city = session.get("weather_city", None)
-
     return jsonify({
         "gate_status": state.get_state(),
         "lamp_status": heat_lamp_state.get_state(),
@@ -221,4 +203,3 @@ def status():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
-# -------------------- END OF FILE --------------------
