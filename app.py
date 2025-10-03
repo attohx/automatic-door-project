@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, url_for, request, session, flash, jsonify
-from config import EMAIL, TO_EMAIL, ADMIN_USERNAME, ADMIN_PASSWORD, SECRET_KEY
+from config import EMAIL, TO_EMAIL, ADMIN_USERNAME, ADMIN_PASSWORD, SECRET_KEY, PINS
 from mail import mail, send_email
 from weather import get_weather
 import state
@@ -8,8 +8,16 @@ import db_setup
 import heat_lamp_state  # Heat lamp state manager
 import schedule_db      # Weekly schedule manager
 from datetime import datetime
+from gpiozero import LED, Button
+import RPi.GPIO as GPIO
+import door
+import threading
+
 
 app = Flask(__name__)
+#----------------------- DOOR CONFIG -----------------------
+my_door = door.Door(PINS["SERVO_PIN"])
+
 app.config.update(EMAIL)
 app.secret_key = SECRET_KEY
 mail.init_app(app)
@@ -17,6 +25,13 @@ mail.init_app(app)
 # Initialize DB
 dbstart = db_setup.kreatedb()
 
+#----------------------- THREADING LOCK CONFIG -----------------------
+lock = threading.Lock()
+
+
+#----------------------- LAMP CONFIG -----------------------
+# GPIO.setmode(GPIO.BOARD)  #Mode already set by door.py
+GPIO.setup(24, GPIO.OUT)
 # -------------------- LOGIN SYSTEM --------------------
 
 @app.route("/login", methods=["GET", "POST"])
@@ -102,10 +117,12 @@ def open_gate():
         return redirect(url_for("login"))
 
     if state.get_state() == "OPEN":
-        flash("Gate is already OPEN!", "info")
+        flash("Gate is already Open!", "info")
         return redirect(url_for("dashboard"))
 
     state.set_state("OPEN")
+    with lock:
+        my_door.open()
     logs_db.log_action("OPENED", session["username"])
     send_email("Poultry Gate Opened 🟢", "The poultry gate has been opened.", [TO_EMAIL])
     return redirect(url_for("dashboard"))
@@ -117,10 +134,12 @@ def close_gate():
         return redirect(url_for("login"))
 
     if state.get_state() == "CLOSED":
-        flash("Gate is already CLOSED!", "info")
+        flash("Gate is already Closed!", "info")
         return redirect(url_for("dashboard"))
 
     state.set_state("CLOSED")
+    with lock:
+        my_door.close()
     logs_db.log_action("CLOSED", session["username"])
     send_email("Poultry Gate Closed 🔴", "The poultry gate has been closed.", [TO_EMAIL])
     return redirect(url_for("dashboard"))
@@ -138,6 +157,7 @@ def lamp_on():
         return redirect(url_for("dashboard"))
 
     heat_lamp_state.set_state("ON")
+    GPIO.output(24, GPIO.HIGH) # Turn on the lamp
     logs_db.log_action("HEAT LAMP ON", session["username"])
     send_email("Heat Lamp Turned ON 🔥", "The heat lamp has been switched ON.", [TO_EMAIL])
     return redirect(url_for("dashboard"))
@@ -153,6 +173,7 @@ def lamp_off():
         return redirect(url_for("dashboard"))
 
     heat_lamp_state.set_state("OFF")
+    GPIO.output(24, GPIO.LOW) # Turn off the lamp
     logs_db.log_action("HEAT LAMP OFF", session["username"])
     send_email("Heat Lamp Turned OFF ❄️", "The heat lamp has been switched OFF.", [TO_EMAIL])
     return redirect(url_for("dashboard"))
