@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Edit Gate Schedule</title>
+  <title>Edit Weekly Gate Schedule</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
@@ -20,29 +20,37 @@
       font-weight: 600;
       border-top-left-radius: 16px !important;
       border-top-right-radius: 16px !important;
+      text-align: center;
+    }
+    .form-time {
+      max-width: 120px;
     }
   </style>
 </head>
 <body>
-
   <div class="container py-5">
     <div class="row justify-content-center">
-      <div class="col-md-6">
+      <div class="col-md-8">
         <div class="card">
-          <div class="card-header text-center">✏️ Edit Gate Schedule</div>
+          <div class="card-header">✏️ Edit Weekly Gate Schedule</div>
           <div class="card-body">
             <form method="POST">
-              <div class="mb-3">
-                <label for="open_time" class="form-label">Open Time</label>
-                <input type="time" class="form-control" id="open_time" name="open_time" 
-                       value="{{ schedule.open_time if schedule.open_time != 'Not set' else '' }}" required>
-              </div>
-              <div class="mb-3">
-                <label for="close_time" class="form-label">Close Time</label>
-                <input type="time" class="form-control" id="close_time" name="close_time" 
-                       value="{{ schedule.close_time if schedule.close_time != 'Not set' else '' }}" required>
-              </div>
-              <div class="d-flex justify-content-between">
+              {% for day, times in schedule.items() %}
+                <div class="row align-items-center mb-3">
+                  <div class="col-md-3">
+                    <strong>{{ day }}</strong>
+                  </div>
+                  <div class="col-md-4">
+                    <input type="time" class="form-control form-time" name="{{ day }}_open"
+                           value="{{ times.open_time if times.open_time != 'Not set' else '' }}" required>
+                  </div>
+                  <div class="col-md-4">
+                    <input type="time" class="form-control form-time" name="{{ day }}_close"
+                           value="{{ times.close_time if times.close_time != 'Not set' else '' }}" required>
+                  </div>
+                </div>
+              {% endfor %}
+              <div class="d-flex justify-content-between mt-4">
                 <a href="/" class="btn btn-secondary">← Back</a>
                 <button type="submit" class="btn btn-primary">Save Schedule</button>
               </div>
@@ -52,6 +60,5 @@
       </div>
     </div>
   </div>
-
 </body>
 </html>
