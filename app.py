@@ -202,7 +202,7 @@ def status():
     else:
         # Ensure keys exist
         weather.setdefault("temperature", "--")
-        weather.setdefault("condition", "Unavailable")
+        weather.setdefault("condition", "MAX REC LIMIT!")
         weather.setdefault("city", city if city else "--")
 
     return jsonify({

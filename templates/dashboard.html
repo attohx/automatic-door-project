@@ -219,7 +219,7 @@
 
         // Weather
         const temp = data.weather?.temperature ?? "--";
-        const cond = data.weather?.condition ?? "Unavailable";
+        const cond = data.weather?.condition ?? "MAX REC LIMIT!";
         const city = data.weather?.city ?? "--";
 
         document.getElementById("weather-temp").innerText = temp + "°C";
