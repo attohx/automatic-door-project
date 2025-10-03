@@ -218,15 +218,17 @@
         }
 
         // Weather
-        if (data.weather && !data.weather.error) {
-          document.getElementById("weather-temp").innerText = data.weather.temperature + "°C";
-          document.getElementById("weather-condition").innerText = data.weather.condition;
-          document.getElementById("weather-city").innerText = data.weather.city;
-        } else {
-          document.getElementById("weather-temp").innerText = "-- °C";
-          document.getElementById("weather-condition").innerText = "Unavailable";
-          document.getElementById("weather-city").innerText = "--";
-        }
+        const temp = data.weather?.temperature ?? "--";
+        const cond = data.weather?.condition ?? "Unavailable";
+        const city = data.weather?.city ?? "--";
+
+        document.getElementById("weather-temp").innerText = temp + "°C";
+        document.getElementById("weather-condition").innerText = cond;
+        document.getElementById("weather-city").innerText = city;
+
+// Debug: log weather
+console.log("Weather data:", data.weather);
+
 
         // Lamp Status
         const lampStatus = document.getElementById("lamp-status");

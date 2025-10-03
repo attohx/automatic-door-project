@@ -190,14 +190,28 @@ def status():
         return jsonify({"error": "Unauthorized"}), 403
 
     city = session.get("weather_city", None)
+    
+    # Safely get weather
+    weather = get_weather(city)
+    if not weather or not isinstance(weather, dict):
+        weather = {
+            "temperature": "--",
+            "condition": "Unavailable",
+            "city": city if city else "--"
+        }
+    else:
+        # Ensure keys exist
+        weather.setdefault("temperature", "--")
+        weather.setdefault("condition", "Unavailable")
+        weather.setdefault("city", city if city else "--")
+
     return jsonify({
         "gate_status": state.get_state(),
         "lamp_status": heat_lamp_state.get_state(),
-        "weather": get_weather(city),
+        "weather": weather,
         "logs": logs_db.read_logs(10),
         "schedule": schedule_db.get_schedule()
     })
-
 
 # -------------------- RUN APP --------------------
 
